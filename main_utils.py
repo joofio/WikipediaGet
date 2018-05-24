@@ -1,24 +1,49 @@
 import wptools
-import pandas as pd
-import time
 
-def getnewname (dictname):
-    return_value=''
+
+def getsame(dictname):
+    return_value = ''
     if dictname is not None:
-        for k,v in dictname.items():
-            if k=='said to be the same as (P460)':
+        for k, v in dictname.items():
+            if k == 'said to be the same as (P460)':
                 if type(v) is list:
-                    return_value='-'.join(v)
+                    return_value = '-'.join(v)
                     break
                 else:
-                    return_value=v
+                    return_value = v
                     break
     else:
         return ''
 
-
-
     return return_value
+
+
+def getnewname(page, lang_target, infobox,wikidata):
+    name = ''
+    try:
+        for descr in page.data['languages']:
+            if descr['lang'] == lang_target:
+                name = descr['title']
+                break
+    except KeyError:
+        pass
+
+    if name == '':
+        for k, v in infobox.items():
+            if k == 'drug_name':#tenofovir
+                name = v
+                break
+    if name == '':
+        for k, v in infobox.items():
+            if k == 'name':#sene
+                name = v
+                break
+    if name == '':
+        list=['Commons category (P373)']
+        namesfromwiki=appendDict(wikidata,list)
+        name=namesfromwiki[list[0]]
+    return name
+
 
 def appendDict(dic, dlist):
     value = {}
@@ -39,16 +64,18 @@ def appendDict(dic, dlist):
                     else:
                         pass
             elif type(dic[item]) is list:
-                value[item]= '- '.join(dic[item])
-            else:
+                value[item] = '- '.join(dic[item])
+            elif type(dic[item]) is dict:
                 for k, v in dic[item].items():
                     value[k] = v
+            else:
+                value[item]=dic[item]
                     # print(k)
                     # print(v)
         return value
 
     else:
-        return ''
+        return dic
 
 
 def handleLang(drug, lang):
@@ -76,20 +103,11 @@ def GetDrugInfo(drug, lang_origin, lang_target):
     if page is False:
         return
 
-    newname = ''
-
-    if item != lang_target:
-        for descr in page.data['languages']:
-            if descr['lang'] == lang_target:
-                newname = descr['title']
-    else:
-        pass
-
     result_wikidata = {}
     try:
         result_wikidata = page.data['wikidata']
     except TypeError:
-        print('typeError wikidata')
+        print('TypeError wikidata')
         pass
 
     result_infobox = {}
@@ -105,25 +123,28 @@ def GetDrugInfo(drug, lang_origin, lang_target):
     except TypeError:
         print('typeError infobox')
         pass
+    newname = getnewname(page, lang_target, result_infobox,result_wikidata)
 
     if newname is not None:
         drug = newname
-    alias={}
+
+    alias = {}
     page2 = wptools.page(drug, lang=lang_target, silent=True)
     page2.get_parse()
     page2.get_wikidata()
     try:
         alias = (page2.data['aliases'])
     except KeyError:
-        print('no aliases for language ' + str(lang_target))
+        #print('no aliases for language ' + str(lang_target))
         try:
             alias = (page.data['aliases'])
         except KeyError:
             pass
 
-    print('searched for ' + ' ' + item)
-    print(lang_target + ': ' + drug)
+    print(drug)
+    print('infobox')
     print(result_infobox)
+    print('wikidata')
     print(result_wikidata)
     return_value = {}
 
@@ -133,41 +154,3 @@ def GetDrugInfo(drug, lang_origin, lang_target):
     return_value['aliases'] = alias
 
     return (return_value)
-
-
-with open ("includes.txt", "r") as myfile:
-    includes=eval(myfile.read())
-path=includes['path']
-
-
-drug_list = pd.read_csv(path, sep=";")
-drug_nolink = drug_list[drug_list['Nome_Match'].isnull()]
-drug_nolink = drug_nolink['Med_DCIPT_Descr']
-drug_nolink = drug_nolink.drop_duplicates()
-drug_nolink_noplus = drug_nolink[drug_nolink.str.contains(" +") == False]
-inter = {}
-inter2 = {}
-final = {}
-dlist = ['infobox', 'wikidata', 'aliases']
-counter=1
-for item in drug_nolink_noplus.tail(15):
-    inter = GetDrugInfo(item, 'pt', 'en')
-    if inter is not None:
-        inter2 = (appendDict(inter, dlist))
-        inter2['ptname'] = item
-        if inter['newname'] == '':
-            inter2['engname']=getnewname(inter2)
-        else:
-            inter2['engname'] = inter['newname']
-        if counter==1:
-            df = pd.DataFrame(data=inter2,index=[0])
-        else:
-            df.append(inter2, ignore_index=True)
-        counter+=1
-    else:
-        pass
-    print(final)
-
-df.to_csv('result_wiki.csv')
-
-#Chloramphenicol testar
