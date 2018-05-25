@@ -39,7 +39,7 @@ for item in drug_nolink_noplus:
     row+=1
     if row%5==0:
         df = pd.DataFrame(data=final)
-        df.to_csv('/Users/joaoalmeida/Downloads/result_wikinomes.csv')
+        df.to_csv('result_wikinomes.csv')
 
 df = pd.DataFrame(data=final)
 df.to_csv('result_wikinomes.csv')
