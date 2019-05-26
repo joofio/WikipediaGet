@@ -1,9 +1,9 @@
 import pandas as pd
 import main_utils as utils
 
-with open ("includes.txt", "r") as myfile:
-    includes=eval(myfile.read())
-path=includes['path']
+with open("includes.txt", "r") as myfile:
+    includes = eval(myfile.read())
+path = includes['path']
 
 drug_list = pd.read_csv(path, sep=";")
 drug_nolink = drug_list[drug_list['Nome_Match'].isnull()]
@@ -14,7 +14,7 @@ drug_nolink_noplus = drug_nolink[drug_nolink.str.contains(" +") == False]
 dlist = ['aliases']
 row = 1
 final = {'ptname': [], 'engname': []}
-#drug_nolink_noplus=['Tenofovir','Aminofilina','Difenidramina']
+# drug_nolink_noplus=['Tenofovir','Aminofilina','Difenidramina']
 
 for item in drug_nolink_noplus:
     inter = {}
@@ -29,15 +29,15 @@ for item in drug_nolink_noplus:
     else:
         inter2['engname'] = ''
         pass
-    #print(inter2)
+    # print(inter2)
     for k, v in inter2.items():
         if v == '':
             final[k].append('null')
         else:
             final[k].append(v)
     print(final)
-    row+=1
-    if row%5==0:
+    row += 1
+    if row % 5 == 0:
         df = pd.DataFrame(data=final)
         df.to_csv('result_wikinomes.csv')
 

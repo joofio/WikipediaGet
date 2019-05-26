@@ -18,7 +18,7 @@ def getsame(dictname):
     return return_value
 
 
-def getnewname(page, lang_target, infobox,wikidata):
+def getnewname(page, lang_target, infobox, wikidata):
     name = ''
     try:
         for descr in page.data['languages']:
@@ -30,18 +30,18 @@ def getnewname(page, lang_target, infobox,wikidata):
 
     if name == '':
         for k, v in infobox.items():
-            if k == 'drug_name':#tenofovir
+            if k == 'drug_name':  # tenofovir
                 name = v
                 break
     if name == '':
         for k, v in infobox.items():
-            if k == 'name':#sene
+            if k == 'name':  # sene
                 name = v
                 break
     if name == '':
-        list=['Commons category (P373)']
-        namesfromwiki=appendDict(wikidata,list)
-        name=namesfromwiki[list[0]]
+        list = ['Commons category (P373)']
+        namesfromwiki = appendDict(wikidata, list)
+        name = namesfromwiki[list[0]]
     return name
 
 
@@ -69,9 +69,9 @@ def appendDict(dic, dlist):
                 for k, v in dic[item].items():
                     value[k] = v
             else:
-                value[item]=dic[item]
-                    # print(k)
-                    # print(v)
+                value[item] = dic[item]
+                # print(k)
+                # print(v)
         return value
 
     else:
@@ -123,7 +123,7 @@ def GetDrugInfo(drug, lang_origin, lang_target):
     except TypeError:
         print('typeError infobox')
         pass
-    newname = getnewname(page, lang_target, result_infobox,result_wikidata)
+    newname = getnewname(page, lang_target, result_infobox, result_wikidata)
 
     if newname is not None:
         drug = newname
@@ -135,7 +135,7 @@ def GetDrugInfo(drug, lang_origin, lang_target):
     try:
         alias = (page2.data['aliases'])
     except KeyError:
-        #print('no aliases for language ' + str(lang_target))
+        # print('no aliases for language ' + str(lang_target))
         try:
             alias = (page.data['aliases'])
         except KeyError:
